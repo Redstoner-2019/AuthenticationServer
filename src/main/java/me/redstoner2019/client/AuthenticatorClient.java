@@ -10,6 +10,7 @@ import java.net.Socket;
 public class AuthenticatorClient {
     private String address;
     private int port;
+    private Socket socket;
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
 
@@ -37,10 +38,18 @@ public class AuthenticatorClient {
     public void setPort(int port) {
         this.port = port;
     }
-
+    public void disconnect(){
+        try {
+            socket.close();
+            ois.close();
+            oos.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public void setup(){
         try {
-            Socket socket = new Socket(address,port);
+            socket = new Socket(address,port);
             ois = new ObjectInputStream(socket.getInputStream());
             oos = new ObjectOutputStream(socket.getOutputStream());
         } catch (IOException e) {
