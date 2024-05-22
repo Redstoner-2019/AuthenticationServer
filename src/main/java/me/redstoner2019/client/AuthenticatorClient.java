@@ -47,6 +47,9 @@ public class AuthenticatorClient {
             throw new RuntimeException(e);
         }
     }
+    public boolean isConnected(){
+        return socket.isConnected();
+    }
     public void setup(){
         try {
             socket = new Socket(address,port);
