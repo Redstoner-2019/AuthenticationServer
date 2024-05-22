@@ -39,6 +39,7 @@ public class AuthenticatorClient {
         this.port = port;
     }
     public void disconnect(){
+        if(socket == null) return;
         try {
             socket.close();
             ois.close();
@@ -48,6 +49,7 @@ public class AuthenticatorClient {
         }
     }
     public boolean isConnected(){
+        if(socket == null) return false;
         return socket.isConnected();
     }
     public void setup(){
