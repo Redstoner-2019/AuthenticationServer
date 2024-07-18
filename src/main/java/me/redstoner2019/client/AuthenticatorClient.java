@@ -58,11 +58,14 @@ public class AuthenticatorClient {
             ois = new ObjectInputStream(socket.getInputStream());
             oos = new ObjectOutputStream(socket.getOutputStream());
         } catch (IOException ignored) {
-
+            socket = null;
         }
     }
 
     public JSONObject createAccount(String username, String displayname, String password){
+        if(!isConnected()){
+            return null;
+        }
         try {
             JSONObject o = new JSONObject();
             o.put("header","create-account");
@@ -76,6 +79,9 @@ public class AuthenticatorClient {
         }
     }
     public JSONObject loginAccount(String username, String password){
+        if(!isConnected()){
+            return null;
+        }
         try {
             JSONObject o = new JSONObject();
             o.put("header","login");
