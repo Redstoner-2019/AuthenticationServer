@@ -27,8 +27,10 @@ public class AuthServer {
         reloadConfig();
         try {
             ServerSocket serverSocket = new ServerSocket(8009);
+            System.out.println("Auth server started");
             while (!serverSocket.isClosed()){
                 Socket socket = serverSocket.accept();
+                System.out.println("Connection");
                 Thread t = new Thread(new Runnable() {
                     @Override
                     public void run() {
