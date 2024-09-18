@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Login</button>
+        </form>
+
+        <form id="2faForm" class="hidden">
+            <h2>2FA Authentication</h2>
+            <label for="2faCode">Enter 2FA Code</label>
+            <input type="text" id="2faCode" name="2faCode" required>
+            <button type="submit">Verify</button>
+        </form>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

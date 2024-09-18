@@ -296,10 +296,12 @@ public class AuthServer {
         emails.put(email,username);
         data.put("emails",emails);
 
+        saveConfig();
+
         JSONObject loginResult = accountLogin(username,password,true);
 
+        System.out.println(loginResult.toString(3));
 
-        saveConfig();
         JSONObject result = new JSONObject();
         result.put("header","create-account-result");
         result.put("data","account-created");

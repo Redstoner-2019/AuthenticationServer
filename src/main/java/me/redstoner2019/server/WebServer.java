@@ -7,14 +7,47 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.InetSocketAddress;
+import java.security.*;
+import java.util.Base64;
+import java.util.HashMap;
 
 public class WebServer extends WebSocketServer {
+    public static HashMap<String, PrivateKey> privateKeys = new HashMap<>();
+    public static HashMap<String, PublicKey> publicKeys = new HashMap<>();
+
     public WebServer(InetSocketAddress inetSocketAddress) {
         super(inetSocketAddress);
     }
+
+    public static PrivateKey getPrivateKey(InetSocketAddress inetSocketAddress) {
+        return privateKeys.get(inetSocketAddress.toString());
+    }
+
+    public static PublicKey getPublicKey(InetSocketAddress inetSocketAddress) {
+        return publicKeys.get(inetSocketAddress.toString());
+    }
+
+    public static String getPublicKeyString(InetSocketAddress inetSocketAddress) {
+        return Base64.getEncoder().encodeToString(getPublicKey(inetSocketAddress).getEncoded());
+    }
+
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
         System.out.println(webSocket.getRemoteSocketAddress() + " connected");
+        try {
+            KeyPair keyPair = Encryption.generateRSAKeyPair();
+
+            PrivateKey privateKey = keyPair.getPrivate();
+            PublicKey publicKey = keyPair.getPublic();
+
+            privateKeys.put(webSocket.getRemoteSocketAddress().toString(), privateKey);
+            publicKeys.put(webSocket.getRemoteSocketAddress().toString(), publicKey);
+
+            webSocket.send(publicKey.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -24,6 +57,10 @@ public class WebServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
+        System.out.println(s);
+        if(true){
+            return;
+        }
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
