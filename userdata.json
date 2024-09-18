@@ -1,15 +1,47 @@
 {
+  "" : {
+    "password" : "",
+    "displayname" : "Lukas",
+    "creation-time" : 1721561308021,
+    "uuid" : "e06e9e26-d384-42c8-9f6c-7b197b9b5f36"
+  },
+  "emails" : {
+    "lukaspaepke2020@gmail.com" : "redstoner2019"
+  },
   "halil" : {
+    "password" : "Zezlol6231",
+    "displayname" : "HaLuLzEn",
+    "creation-time" : 1721741124927,
+    "uuid" : "163f9f3c-e37c-4e36-9a37-00ddddc1e3c9",
+    "2fa" : true,
+    "email" : ""
+  },
+  "redstoner2019" : {
     "password" : "test",
-    "displayname" : "Halil",
-    "creation-time" : 1716394830814
+    "displayname" : "Redstoner_2019",
+    "creation-time" : 1726575881132,
+    "uuid" : "28156176-2104-4c75-a5de-25f1af94f3e6",
+    "2fa" : false,
+    "email" : "lukaspaepke2020@gmail.com"
   },
   "tokens" : {
-    "n4vXMSe53ho9yIYL4F2wd4AxjGRF3B1Aq89+gJlm6d4tGRK0/bn8Tef1watF0nHv/l1vWOfIe2gFv33lmC53pjmqHQXFF4j8A1WVH2RiQkOck6vP5UKiEndnxdYsehJSmyVjeUJfi99rsgpnqOkE7rRc8m+CBdEUFLUGAPoQCSo=" : "lukas"
+    "q9u5NDlgZ5qsBRNe97NuvDgGlQYCKkCQK6JMV/J9OedHLQ7m0wxaW12Reva2/dK3pLT4wa0miN0H8hgi3wYmOHX7Czokmc5K6996YLwaqN3cQFUDmRMw5bFi4owb1kTYg0v+xFJ38uSseSGVrWPDtL/TkI0v2wR1Cse1o65JWjw=" : "NicoCRUW",
+    "TJFwAvSDPF8X7jy9RY92r3PfXa7Wjf2zGc5BrozYDOJGP6KGUodOZY4Yxr8MVfOzUDbMfeSpkFEq2sA/1KF5Doj7XJ2zkPV+cZK4QjX4+tWNMJWhlnDpr3dHM++s9ANJFmdFPVP/miDTFweB/FkE6sobS3yaQZPxDD2S9z5DERM=" : "",
+    "n4vXMSe53ho9yIYL4F2wd4AxjGRF3B1Aq89+gJlm6d4tGRK0/bn8Tef1watF0nHv/l1vWOfIe2gFv33lmC53pjmqHQXFF4j8A1WVH2RiQkOck6vP5UKiEndnxdYsehJSmyVjeUJfi99rsgpnqOkE7rRc8m+CBdEUFLUGAPoQCSo=" : "lukas",
+    "xu+o86J9Vzy1Kkf2OrG5Sht0e+g2FlT28mh1h8a2/JkvPSvE/HP05Nj5RGKEGXTkoD5rZ0vHqUIgDmw8A3XrIeLY7MJFdbRcCfnfmmRLu+wgsLcIjMLEuNRnMCEp1LYnLPBRxRZv5n2CVOpUUEK0UQ0eYbiwBUyT7U74KwG+y1s=" : "halil"
   },
   "lukas" : {
     "password" : "test",
     "displayname" : "Lukas",
-    "creation-time" : 1716386080060
+    "creation-time" : 1721561420141,
+    "uuid" : "1ca7934e-3c2f-4390-8306-b853c42a1fa1",
+    "2fa" : true,
+    "email" : "lukaspaepke2020@gmail.com"
+  },
+  "NicoCRUW" : {
+    "password" : "muehlenhoff187",
+    "displayname" : "NicoCRUW",
+    "creation-time" : 1721989758613,
+    "uuid" : "d5196b4b-8a3c-469c-b296-0d9a1c0f81bf"
   }
 }

@@ -32,13 +32,19 @@ public class AuthClientHandler {
                             String username = o.getString("username");
                             String displayname = o.getString("displayname");
                             String password = o.getString("password");
-                            sendJSON(AuthServer.createAccount(username,displayname,password));
+                            String email = o.getString("email");
+                            sendJSON(AuthServer.createAccount(username,displayname,password,email,true));
                             break;
                         }
                         case "login": {
                             String username = o.getString("username");
                             String password = o.getString("password");
-                            sendJSON(AuthServer.accountLogin(username,password));
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sendJSON(AuthServer.accountLogin(username,password,false));
+                                }
+                            }).start();
                             break;
                         }
                         case "token-info": {
