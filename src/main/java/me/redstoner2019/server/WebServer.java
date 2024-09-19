@@ -7,55 +7,49 @@ import org.java_websocket.server.WebSocketServer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.security.*;
 import java.util.Base64;
 import java.util.HashMap;
 
+import static me.redstoner2019.server.RSAUtil.encryptSessionKey;
+import static me.redstoner2019.server.RSAUtil.generateRSAKeyPair;
+
 public class WebServer extends WebSocketServer {
-    public static HashMap<String, PrivateKey> privateKeys = new HashMap<>();
-    public static HashMap<String, PublicKey> publicKeys = new HashMap<>();
+    public static HashMap<String,String> sessionKeys = new HashMap<>();
 
     public WebServer(InetSocketAddress inetSocketAddress) {
         super(inetSocketAddress);
     }
 
-    public static PrivateKey getPrivateKey(InetSocketAddress inetSocketAddress) {
-        return privateKeys.get(inetSocketAddress.toString());
-    }
-
-    public static PublicKey getPublicKey(InetSocketAddress inetSocketAddress) {
-        return publicKeys.get(inetSocketAddress.toString());
-    }
-
-    public static String getPublicKeyString(InetSocketAddress inetSocketAddress) {
-        return Base64.getEncoder().encodeToString(getPublicKey(inetSocketAddress).getEncoded());
-    }
-
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
         Logger.log(webSocket.getRemoteSocketAddress() + " connected");
-        //try {
-        //    KeyPair keyPair = Encryption.generateRSAKeyPair();
-        //    PrivateKey privateKey = keyPair.getPrivate();
-        //    PublicKey publicKey = keyPair.getPublic();
-        //    privateKeys.put(webSocket.getRemoteSocketAddress().toString(), privateKey);
-        //    publicKeys.put(webSocket.getRemoteSocketAddress().toString(), publicKey);
-        //    webSocket.send(publicKey.toString());
-        //} catch (Exception e) {
-        //    e.printStackTrace();
-        //    throw new RuntimeException(e);
-        //}
+
+        int bitLength = 1024;
+
+        BigInteger[] serverKeyPair = generateRSAKeyPair(bitLength);
+        BigInteger server_n = serverKeyPair[0];
+        BigInteger server_e = serverKeyPair[1];
+        BigInteger server_d = serverKeyPair[2];
+
+        JSONObject data = new JSONObject();
+        data.put("header","server-info");
+        data.put("n", server_n.toString());
+        data.put("e", server_e.toString());
+
+        webSocket.send(data.toString());
     }
 
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
         Logger.log(webSocket.getRemoteSocketAddress() + " disconnected");
+        sessionKeys.remove(webSocket.getRemoteSocketAddress().toString());
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
-        Logger.log("Recieved: " + s);
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -63,6 +57,44 @@ public class WebServer extends WebSocketServer {
                 JSONObject response;
                 try{
                     JSONObject request = new JSONObject(s);
+                    if(request.has("header")){
+                        if(request.getString("header").equals("connection")){
+                            BigInteger sessionKey = new BigInteger(512, new SecureRandom());
+                            BigInteger encryptedSessionKey = encryptSessionKey(sessionKey, new BigInteger(request.getString("n")), new BigInteger(request.getString("e")));
+
+                            String sessionKeyString = sessionKey.toString();
+                            sessionKeys.put(webSocket.getRemoteSocketAddress().toString(), sessionKeyString);
+                            System.out.println(sessionKeyString);
+
+                            JSONObject result = new JSONObject();
+                            result.put("sessionKey", encryptedSessionKey.toString());
+                            result.put("header","connection-result");
+                            webSocket.send(result.toString());
+                            return;
+                        }
+                        if(request.getString("header").equals("encrypted")){
+                            String encryption = request.getString("encryption");
+                            if(encryption.equals("AES")){
+                                try {
+                                    request = new JSONObject(RSAUtil.decrypt(request.getString("data"),sessionKeys.get(webSocket.getRemoteSocketAddress().toString())));
+                                    Logger.log("Decrypted data: " + request.toString(3));
+                                } catch (Exception e) {
+                                    response = new JSONObject();
+                                    response.put("header","response");
+                                    response.put("code",501);
+                                    response.put("value","An internal error occured");
+                                    webSocket.send(response.toString());
+                                    System.out.println(request.toString(3));
+                                    System.out.println(response);
+                                    e.printStackTrace();
+                                    return;
+                                }
+                            } else {
+                                System.out.println("Invalid encryption");
+                                return;
+                            }
+                        }
+                    }
                     if(request.has("header")){
                         switch (request.getString("header")){
                             case "delete-account" : {
@@ -329,12 +361,11 @@ public class WebServer extends WebSocketServer {
                     e.printStackTrace();
                 }
                 Logger.log("Sending response: " + response.toString(3));
-                webSocket.send(response.toString());
+                if(sessionKeys.containsKey(webSocket.getRemoteSocketAddress().toString())) RSAUtil.sendMessageSecure(webSocket,response.toString(),sessionKeys.get(webSocket.getRemoteSocketAddress().toString()));
+                else webSocket.send(response.toString());
             }
         });
         t.start();
-
-
     }
 
     @Override
