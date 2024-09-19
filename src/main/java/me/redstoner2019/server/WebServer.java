@@ -13,12 +13,9 @@ import java.security.*;
 import java.util.Base64;
 import java.util.HashMap;
 
-import static me.redstoner2019.server.RSAUtil.encryptSessionKey;
-import static me.redstoner2019.server.RSAUtil.generateRSAKeyPair;
+import static me.redstoner2019.server.RSAUtil.*;
 
 public class WebServer extends WebSocketServer {
-    public static HashMap<String,String> sessionKeys = new HashMap<>();
-
     public WebServer(InetSocketAddress inetSocketAddress) {
         super(inetSocketAddress);
     }
@@ -57,43 +54,9 @@ public class WebServer extends WebSocketServer {
                 JSONObject response;
                 try{
                     JSONObject request = new JSONObject(s);
-                    if(request.has("header")){
-                        if(request.getString("header").equals("connection")){
-                            BigInteger sessionKey = new BigInteger(512, new SecureRandom());
-                            BigInteger encryptedSessionKey = encryptSessionKey(sessionKey, new BigInteger(request.getString("n")), new BigInteger(request.getString("e")));
-
-                            String sessionKeyString = sessionKey.toString();
-                            sessionKeys.put(webSocket.getRemoteSocketAddress().toString(), sessionKeyString);
-                            System.out.println(sessionKeyString);
-
-                            JSONObject result = new JSONObject();
-                            result.put("sessionKey", encryptedSessionKey.toString());
-                            result.put("header","connection-result");
-                            webSocket.send(result.toString());
-                            return;
-                        }
-                        if(request.getString("header").equals("encrypted")){
-                            String encryption = request.getString("encryption");
-                            if(encryption.equals("AES")){
-                                try {
-                                    request = new JSONObject(RSAUtil.decrypt(request.getString("data"),sessionKeys.get(webSocket.getRemoteSocketAddress().toString())));
-                                    Logger.log("Decrypted data: " + request.toString(3));
-                                } catch (Exception e) {
-                                    response = new JSONObject();
-                                    response.put("header","response");
-                                    response.put("code",501);
-                                    response.put("value","An internal error occured");
-                                    webSocket.send(response.toString());
-                                    System.out.println(request.toString(3));
-                                    System.out.println(response);
-                                    e.printStackTrace();
-                                    return;
-                                }
-                            } else {
-                                System.out.println("Invalid encryption");
-                                return;
-                            }
-                        }
+                    request = RSAUtil.handleMessage(request, webSocket);
+                    if(request == null){
+                        return;
                     }
                     if(request.has("header")){
                         switch (request.getString("header")){
@@ -361,8 +324,7 @@ public class WebServer extends WebSocketServer {
                     e.printStackTrace();
                 }
                 Logger.log("Sending response: " + response.toString(3));
-                if(sessionKeys.containsKey(webSocket.getRemoteSocketAddress().toString())) RSAUtil.sendMessageSecure(webSocket,response.toString(),sessionKeys.get(webSocket.getRemoteSocketAddress().toString()));
-                else webSocket.send(response.toString());
+                RSAUtil.sendMessageSecure(webSocket,response.toString());
             }
         });
         t.start();

@@ -1,5 +1,6 @@
 package me.redstoner2019.server;
 
+import me.redstoner2019.util.Logger;
 import org.java_websocket.WebSocket;
 import org.json.JSONObject;
 
@@ -10,10 +11,69 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HashMap;
 
 public class RSAUtil {
     private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
     private static final String AES = "AES";
+    public static HashMap<String,String> sessionKeys = new HashMap<>();
+
+    public static JSONObject handleMessage(JSONObject request, WebSocket ws){
+        if(request.has("header")){
+            if(request.getString("header").equals("connection")){
+                BigInteger sessionKey = new BigInteger(512, new SecureRandom());
+                BigInteger encryptedSessionKey = encryptSessionKey(sessionKey, new BigInteger(request.getString("n")), new BigInteger(request.getString("e")));
+
+                String sessionKeyString = sessionKey.toString();
+                sessionKeys.put(ws.getRemoteSocketAddress().toString(), sessionKeyString);
+
+                JSONObject result = new JSONObject();
+                result.put("sessionKey", encryptedSessionKey.toString());
+                result.put("header","connection-result");
+                ws.send(result.toString());
+                return null;
+            } else if(request.getString("header").equals("encrypted")){
+                String encryption = request.getString("encryption");
+                if(encryption.equals("AES")){
+                    try {
+                        request = new JSONObject(RSAUtil.decrypt(request.getString("data"),sessionKeys.get(ws.getRemoteSocketAddress().toString())));
+                        return request;
+                    } catch (Exception e) {
+                        JSONObject response = new JSONObject();
+                        response.put("header","response");
+                        response.put("code",501);
+                        response.put("value","An internal error occured");
+                        ws.send(response.toString());
+                        System.err.println(request.toString(3));
+                        System.err.println(response);
+                        e.printStackTrace();
+                        return null;
+                    }
+                } else if(encryption.equals("PLAIN")){
+                    try{
+                        return request.getJSONObject("data");
+                    }catch (Exception e){
+                        try{
+                            return new JSONObject(request.getString("data"));
+                        }catch (Exception ex){
+                            return request;
+                        }
+                    }
+                } else {
+                    JSONObject response = new JSONObject();
+                    response.put("header","response");
+                    response.put("code",400);
+                    response.put("value","Invalid Encryption");
+                    ws.send(response.toString());
+                    return null;
+                }
+            } else {
+                return request;
+            }
+        } else {
+            return request;
+        }
+    }
 
     public static String encrypt(String message, String key) throws Exception {
         SecretKeySpec secretKey = new SecretKeySpec(getKey(key), AES);
@@ -74,15 +134,19 @@ public class RSAUtil {
         return ciphertext.modPow(d, n);
     }
 
-    public static void sendMessageSecure(WebSocket ws, String message, String sessionKey){
-        JSONObject messageJSON = new JSONObject();
-        messageJSON.put("header", "encrypted");
-        messageJSON.put("encryption", "AES");
-        try {
-            messageJSON.put("data", encrypt(message,sessionKey));
-            ws.send(messageJSON.toString());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public static void sendMessageSecure(WebSocket ws, String message){
+        if(sessionKeys.containsKey(ws.getRemoteSocketAddress().toString())){
+            JSONObject messageJSON = new JSONObject();
+            messageJSON.put("header", "encrypted");
+            messageJSON.put("encryption", "AES");
+            try {
+                messageJSON.put("data", encrypt(message,sessionKeys.get(ws.getRemoteSocketAddress().toString())));
+                ws.send(messageJSON.toString());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            ws.send(message);
         }
     }
 }
