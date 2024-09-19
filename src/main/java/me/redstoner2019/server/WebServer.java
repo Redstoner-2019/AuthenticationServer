@@ -1,5 +1,6 @@
 package me.redstoner2019.server;
 
+import me.redstoner2019.util.Logger;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -33,38 +34,32 @@ public class WebServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-        System.out.println(webSocket.getRemoteSocketAddress() + " connected");
-        try {
-            KeyPair keyPair = Encryption.generateRSAKeyPair();
-
-            PrivateKey privateKey = keyPair.getPrivate();
-            PublicKey publicKey = keyPair.getPublic();
-
-            privateKeys.put(webSocket.getRemoteSocketAddress().toString(), privateKey);
-            publicKeys.put(webSocket.getRemoteSocketAddress().toString(), publicKey);
-
-            webSocket.send(publicKey.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        Logger.log(webSocket.getRemoteSocketAddress() + " connected");
+        //try {
+        //    KeyPair keyPair = Encryption.generateRSAKeyPair();
+        //    PrivateKey privateKey = keyPair.getPrivate();
+        //    PublicKey publicKey = keyPair.getPublic();
+        //    privateKeys.put(webSocket.getRemoteSocketAddress().toString(), privateKey);
+        //    publicKeys.put(webSocket.getRemoteSocketAddress().toString(), publicKey);
+        //    webSocket.send(publicKey.toString());
+        //} catch (Exception e) {
+        //    e.printStackTrace();
+        //    throw new RuntimeException(e);
+        //}
     }
 
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-        System.out.println(webSocket.getRemoteSocketAddress() + " disconnected");
+        Logger.log(webSocket.getRemoteSocketAddress() + " disconnected");
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
-        System.out.println(s);
-        if(true){
-            return;
-        }
+        Logger.log("Recieved: " + s);
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                System.out.println(webSocket.getRemoteSocketAddress() + " received message: " + s);
+                Logger.log(webSocket.getRemoteSocketAddress() + " received message: " + s);
                 JSONObject response;
                 try{
                     JSONObject request = new JSONObject(s);
@@ -333,7 +328,7 @@ public class WebServer extends WebSocketServer {
                     response.put("error", "An internal unexpected Exception occured: \n" + exceptionStackTraceToString(e));
                     e.printStackTrace();
                 }
-                System.out.println("Sending response: " + response.toString(3));
+                Logger.log("Sending response: " + response.toString(3));
                 webSocket.send(response.toString());
             }
         });
@@ -349,13 +344,13 @@ public class WebServer extends WebSocketServer {
 
     @Override
     public void onStart() {
-        System.out.println("Server started");
+        Logger.log("Server started");
     }
 
     public static String exceptionStackTraceToString(Exception e){
         String ex = "";
         for (StackTraceElement element : e.getStackTrace()) {
-            System.out.println(element);
+            Logger.log(element.toString());
             ex+=element.toString()+"\n";
         }
         return ex;

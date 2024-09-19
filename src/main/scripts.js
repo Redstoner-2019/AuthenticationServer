@@ -1,6 +1,9 @@
-//const socket = new WebSocket('ws://158.220.105.209:8010');
-const socket = new WebSocket('ws://localhost:8010');
+const socket = new WebSocket('ws://158.220.105.209:8010');
 
+json = [];
+
+//const socket = new WebSocket('ws://localhost:8010');
+/*
 var privateKey = null;
 var publicKey = null;
 

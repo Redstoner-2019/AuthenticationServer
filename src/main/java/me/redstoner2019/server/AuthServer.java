@@ -212,7 +212,7 @@ public class AuthServer {
             data.put("emails",new JSONObject());
         }
 
-        if(data.getJSONObject("emails").has(email)){
+        if(data.getJSONObject("emails").has(email.toLowerCase())){
             JSONObject result = new JSONObject();
             result.put("header","create-account-result");
             result.put("data","email-already-exists");
@@ -293,7 +293,7 @@ public class AuthServer {
         data.put(username,user);
 
         JSONObject emails = data.getJSONObject("emails");
-        emails.put(email,username);
+        emails.put(email.toLowerCase(),username);
         data.put("emails",emails);
 
         saveConfig();
