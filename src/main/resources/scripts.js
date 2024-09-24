@@ -35,19 +35,6 @@ function isProbablePrime(n, k = 40) {
     return true;
 }
 
-function modPow(base, exp, mod) {
-    let result = 1n;
-    base = base % mod;
-    while (exp > 0n) {
-        if (exp % 2n === 1n) {
-            result = (result * base) % mod;
-        }
-        exp = exp >> 1n;
-        base = (base * base) % mod;
-    }
-    return result;
-}
-
 function generateNBitPrime(n) {
     if (n < 2) throw new Error('n must be at least 2');
     let prime;
@@ -193,7 +180,8 @@ async function handleMessage(message){
 }
 
 function setup(){
-    var connectionMessage = {
+    keyPair = generateRSAKeyPair(1024);
+    let connectionMessage = {
         'header' : 'connection',
         'n' : keyPair[0].toString(),
         'e' : keyPair[1].toString()
@@ -216,7 +204,7 @@ function sendMessage(message){
     })();
 }
 
-keyPair = generateRSAKeyPair(1024);
+var keyPair = null;
 
 var server_n = null;
 var server_e = null;
@@ -227,9 +215,11 @@ var session_key = null;
 
 
 
-const socket = new WebSocket('ws://158.220.105.209:8010');
+//const socket = new WebSocket('ws://158.220.105.209:8010');
+const socket = new WebSocket('ws:/localhost:99');
 
 socket.onopen = () => {
+    socket.send("Hello World");
     console.log('Connected to the WebSocket server');
     setup();
 };
@@ -248,7 +238,7 @@ socket.onerror = (error) => {
     console.error('WebSocket error: ', error);
 };
 
-setTimeout(function(){
+/*setTimeout(function(){
     var login = {
         "header" : "login",
         "username" : "lukas",
@@ -256,4 +246,4 @@ setTimeout(function(){
     };
     socket.send(JSON.stringify(login));
     //sendMessage(JSON.stringify(login));
-}, 1000);
+}, 1000);*/
