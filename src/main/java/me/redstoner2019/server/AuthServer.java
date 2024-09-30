@@ -13,7 +13,10 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
@@ -141,7 +144,7 @@ public class AuthServer {
 
         JSONObject user = data.getJSONObject(username);
 
-        if(!user.getString("password").equals(password)){
+        if(!user.getString("password").equals(sha256(password))){
             JSONObject result = new JSONObject();
             result.put("header","login-result");
             result.put("data","incorrect-password");
@@ -191,7 +194,7 @@ public class AuthServer {
             tokens = new JSONObject();
         }
 
-        String token = Token.createToken(username,password);
+        String token = Token.createToken(username,sha256(password));
 
         tokens.put(token,username);
 
@@ -285,7 +288,7 @@ public class AuthServer {
 
         JSONObject user = new JSONObject();
         user.put("displayname",displayname);
-        user.put("password",password);
+        user.put("password",sha256(password));
         user.put("creation-time",System.currentTimeMillis());
         user.put("uuid", UUID.randomUUID());
         user.put("email",email);
@@ -381,5 +384,28 @@ public class AuthServer {
     public static String readFile(File path) throws IOException {
         byte[] encoded = Files.readAllBytes(path.toPath());
         return new String(encoded, Charset.defaultCharset());
+    }
+    public static String sha256(String input) {
+        try {
+            // Create a MessageDigest instance for SHA-256
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+            // Apply SHA-256 algorithm to the input string
+            byte[] encodedHash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            // Convert the byte array into a hex string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : encodedHash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
