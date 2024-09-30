@@ -1,233 +1,49 @@
-function generateRandomNBitNumber(n) {
-    const bytes = Math.ceil(n / 8);
-    const array = new Uint8Array(bytes);
-    window.crypto.getRandomValues(array);
-    let bigInt = BigInt('0x' + Array.from(array).map(b => b.toString(16).padStart(2, '0')).join(''));
-    const mask = (BigInt(1) << BigInt(n)) - BigInt(1);
-    bigInt &= mask;
-    return bigInt;
+const net = require('net');
+
+const client = new net.Socket();
+
+client.connect(100, '158.220.105.209', function () {
+    console.log('Connected to the server');
+})
+
+/*
+console.log("Starting");
+
+
+/*let request = {
+    method : "test",
+    data : "etst2"
 }
 
-function isProbablePrime(n, k = 40) {
-    if (n < 2n) return false;
-    if (n === 2n) return true;
-    if (n % 2n === 0n) return false;
-    let d = n - 1n;
-    let s = 0;
-    while (d % 2n === 0n) {
-        d /= 2n;
-        s += 1;
+fetch('http://localhost:99/api/data', {
+    method: 'GET',
+    headers: {
+        "request" : JSON.stringify(request)
     }
-    for (let i = 0; i < k; i++) {
-        let a = BigInt.asUintN(n.toString(2).length, generateRandomNBitNumber(n.toString(2).length - 1) + 1n);
-        let x = modPow(a, d, n);
-        if (x === 1n || x === n - 1n) continue;
-        let flag = false;
-        for (let r = 0; r < s; r++) {
-            x = modPow(x, 2n, n);
-            if (x === n - 1n) {
-                flag = true;
-                break;
-            }
-        }
-        if (!flag) return false;
-    }
-    return true;
-}
-
-function generateNBitPrime(n) {
-    if (n < 2) throw new Error('n must be at least 2');
-    let prime;
-    do {
-        prime = generateRandomNBitNumber(n);
-        prime |= (BigInt(1) << BigInt(n - 1));
-    } while (!isProbablePrime(prime));
-    return prime;
-}
-
-function modInverse(a, m) {
-    a = BigInt(a);
-    m = BigInt(m);
-
-    let [g, x, y] = extendedGCD(a, m);
-    if (g !== 1n) {
-        throw new Error("Modular inverse does not exist");
-    }
-    return (x % m + m) % m;
-}
-
-function modPow(base, exponent, modulus) {
-    if (modulus === BigInt(1)) return BigInt(0);
-
-    base = base % modulus;
-    let result = BigInt(1);
-    let exp = exponent;
-
-    while (exp > 0) {
-        if (exp % BigInt(2) === BigInt(1)) {
-            result = (result * base) % modulus;
-        }
-        exp = exp >> BigInt(1);
-        base = (base * base) % modulus;
-    }
-
-    return result;
-}
-
-function extendedGCD(a, b) {
-    if (b === 0n) {
-        return [a, 1n, 0n];
-    }
-    let [g, x1, y1] = extendedGCD(b, a % b);
-    let x = y1;
-    let y = x1 - (a / b) * y1;
-    return [g, x, y];
-}
-
-function decryptSessionKey(encryptedSessionKey, server_n, client_d){
-    return modPow(encryptedSessionKey,client_d,server_n);
-}
-
-function generateRSAKeyPair(bitLength){
-    p = generateNBitPrime(bitLength);
-    q = generateNBitPrime(bitLength);
-
-    n = p * q;
-
-    phi = (p - BigInt(1)) * (q - BigInt(1));
-
-    e = BigInt(65537);
-
-    d = modInverse(e, phi);
-
-    return [n, e, d];
-}
-
-function bigIntToBase64(bigInt) {
-    const hexString = bigInt.toString(16);
-    const paddedHexString = hexString.length % 2 === 1 ? '0' + hexString : hexString;
-
-    const byteArray = new Uint8Array(paddedHexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-
-    const binaryString = String.fromCharCode.apply(null, byteArray);
-    return btoa(binaryString);
-}
-
-async function encrypt(message, key) {
-    const encoder = new TextEncoder();
-    const keyMaterial = await window.crypto.subtle.importKey(
-        "raw",
-        await window.crypto.subtle.digest("SHA-256", encoder.encode(key)),
-        "AES-CBC",
-        false,
-        ["encrypt"]
-    );
-
-    const iv = window.crypto.getRandomValues(new Uint8Array(16));
-    const encrypted = await window.crypto.subtle.encrypt(
-        { name: "AES-CBC", iv: iv },
-        keyMaterial,
-        encoder.encode(message)
-    );
-
-    return `${btoa(String.fromCharCode(...iv))}:${btoa(String.fromCharCode(...new Uint8Array(encrypted)))}`;
-}
-
-async function decrypt(encryptedData, key) {
-    const [ivBase64, contentBase64] = encryptedData.split(":");
-    const iv = new Uint8Array(atob(ivBase64).split("").map(char => char.charCodeAt(0)));
-    const encryptedContent = new Uint8Array(atob(contentBase64).split("").map(char => char.charCodeAt(0)));
-
-    const keyMaterial = await window.crypto.subtle.importKey(
-        "raw",
-        await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(key)),
-        "AES-CBC",
-        false,
-        ["decrypt"]
-    );
-
-    const decrypted = await window.crypto.subtle.decrypt(
-        { name: "AES-CBC", iv: iv },
-        keyMaterial,
-        encryptedContent
-    );
-
-    return new TextDecoder().decode(decrypted);
-}
-
-async function handleMessage(message){
-    var recieved = JSON.parse(message);
-    if(recieved.header === "server-info"){
-        server_n = recieved.n;
-        server_e = recieved.e;
-        return recieved;
-    } else if(recieved.header === "connection-result"){
-        session_key = decryptSessionKey(BigInt(recieved.sessionKey),keyPair[0],keyPair[2]).toString();
-        return recieved;
-    } else if(recieved.header === "encrypted"){
-        var encryption = recieved.encryption;
-        if(encryption === "AES"){
-            var decrypted = await decrypt(recieved.data, session_key);
-            return JSON.parse(decrypted);
-        } else if(encryption === "PLAIN") {
-            return JSON.parse(recieved.data);
-        } else {
-            return;
-        }
-    } else {
-        return recieved;
-    }
-}
-
-function setup(){
-    keyPair = generateRSAKeyPair(1024);
-    let connectionMessage = {
-        'header' : 'connection',
-        'n' : keyPair[0].toString(),
-        'e' : keyPair[1].toString()
-    }
-    socket.send(JSON.stringify(connectionMessage));
-}
-
-function sendMessage(message){
-    (async () => {
-        const key = session_key;
-
-        const encryptedData = await encrypt(message, key);
-
-        var carrier = {
-            "header" : "encrypted",
-            "encryption" : "AES",
-            "data" : encryptedData
-        }
-        socket.send(JSON.stringify(carrier));
-    })();
-}
-
-var keyPair = null;
-
-var server_n = null;
-var server_e = null;
-var session_key = null;
-
-
-
-
-
-
-//const socket = new WebSocket('ws://158.220.105.209:8010');
-const socket = new WebSocket('ws:/localhost:99');
+})
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
+*/
+//const socket = new WebSocket('ws://echo.websocket.org');
+/*const socket = new WebSocket('ws://localhost:100');
+//const socket = new WebSocket('ws://158.220.105.209:100');
 
 socket.onopen = () => {
-    socket.send("Hello World");
     console.log('Connected to the WebSocket server');
-    setup();
+    socket.send("Hewwo World!");
 };
 
 socket.onmessage = (event) => {
-    handleMessage(event.data).then((result) => {
-        console.log(result);
-    });
+    const data = event.data;
+
+    // Look for the --END-- terminator in the message
+    if (data.endsWith('--END--')) {
+        const message = data.replace('--END--', '');
+        console.log('Complete message received:', message);
+    } else {
+        console.log('Partial message received:', data);
+    }
 };
 
 socket.onclose = (event) => {
@@ -238,12 +54,360 @@ socket.onerror = (error) => {
     console.error('WebSocket error: ', error);
 };
 
-/*setTimeout(function(){
-    var login = {
-        "header" : "login",
-        "username" : "lukas",
-        "password" : "test"
+json = [];*/
+
+//const socket = new WebSocket('ws://localhost:8010');
+/*
+var privateKey = null;
+var publicKey = null;
+
+// Function to convert Base64 to ArrayBuffer
+function base64ToArrayBuffer(base64) {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+// Function to convert ArrayBuffer to Base64
+function arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    const binary = String.fromCharCode(...bytes);
+    return btoa(binary);
+}
+
+// Import a private key (PKCS#8 format)
+async function importPrivateKey(privateKeyBase64) {
+    const privateKeyArrayBuffer = base64ToArrayBuffer(privateKeyBase64);
+    return window.crypto.subtle.importKey(
+        "pkcs8",
+        privateKeyArrayBuffer,
+        {
+            name: "ECDH",
+            namedCurve: "P-256"
+        },
+        true,
+        ["deriveKey"]
+    );
+}
+
+// Import a public key (SPKI format)
+async function importPublicKey(publicKeyBase64) {
+    const publicKeyArrayBuffer = base64ToArrayBuffer(publicKeyBase64);
+    return window.crypto.subtle.importKey(
+        "spki",
+        publicKeyArrayBuffer,
+        {
+            name: "ECDH",
+            namedCurve: "P-256"
+        },
+        true,
+        []
+    );
+}
+
+// Generate a shared secret
+async function generateSharedSecret(privateKeyBase64, publicKeyBase64) {
+    // Import the private and public keys
+    const privateKey = await importPrivateKey(privateKeyBase64);
+    const publicKey = await importPublicKey(publicKeyBase64);
+
+    // Derive the shared secret
+    const sharedSecretKey = await window.crypto.subtle.deriveKey(
+        {
+            name: "ECDH",
+            public: publicKey
+        },
+        privateKey,
+        {
+            name: "AES-GCM",
+            length: 256
+        },
+        true,
+        ["encrypt", "decrypt"]
+    );
+
+    // Export the derived key as raw bits (ArrayBuffer)
+    const sharedSecretArrayBuffer = await window.crypto.subtle.exportKey("raw", sharedSecretKey);
+
+    // Convert ArrayBuffer to Base64 string
+    return arrayBufferToBase64(sharedSecretArrayBuffer);
+}
+
+
+
+async function exportPublicKey(publicKey) {
+    // Export the public key as SPKI format
+    const exportedKey = await window.crypto.subtle.exportKey(
+        "spki", // Public key format
+        publicKey
+    );
+
+    // Convert to Base64 string (to easily send over the network)
+    return btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
+}
+
+
+async function exportPrivateKey(privateKey) {
+    // Export the private key as PKCS#8 format
+    const exportedKey = await window.crypto.subtle.exportKey(
+        "pkcs8", // Private key format
+        privateKey
+    );
+
+    // Convert to Base64 string (to easily inspect, but don't send over the network)
+    return btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
+}
+
+async function init(){
+    const keyPair = await window.crypto.subtle.generateKey(
+        {
+            name: "ECDH",
+            namedCurve: "P-256"
+        },
+        true, // Keys are extractable
+        ["deriveKey"]
+    );
+    privateKey = await exportPrivateKey(keyPair.privateKey);
+    publicKey = await exportPublicKey(keyPair.publicKey);
+}
+
+sharedSecret = null;
+
+async function createSecret(serverKey) {
+    sharedSecret = await generateSharedSecret(privateKey, serverKey);
+    console.log(sharedSecret);
+}
+
+async function main(){
+    await init();
+
+    socket.onopen = () => {
+        console.log('Connected to the WebSocket server');
+        socket.send(publicKey);
     };
-    socket.send(JSON.stringify(login));
-    //sendMessage(JSON.stringify(login));
-}, 1000);*/
+
+    socket.onmessage = (event) => {
+        console.log("Recieved message");
+        message = event.data;
+        console.log(privateKey);
+        console.log(message);
+        createSecret(message);
+    };
+
+    socket.onclose = (event) => {
+        console.log('Disconnected from the WebSocket server');
+    };
+
+    socket.onerror = (error) => {
+        console.error('WebSocket error: ', error);
+    };
+}
+
+main();
+
+
+
+/*async function generateAndExportKeys() {
+    const keyPair = await window.crypto.subtle.generateKey(
+        {
+            name: "ECDH",
+            namedCurve: "P-256"
+        },
+        true, // Keys are extractable
+        ["deriveKey"]
+    );
+
+    // Export public key to send to server
+    const exportedPublicKey = await exportPublicKey(keyPair.publicKey);
+
+    console.log("Public Key (Base64):", exportedPublicKey);
+
+    // (Optional) Export private key
+    const exportedPrivateKey = await exportPrivateKey(keyPair.privateKey);
+    console.log("Private Key (Base64):", exportedPrivateKey);
+}
+
+generateAndExportKeys();*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+isSetup = false;
+serverPublicKey = "";
+
+clientKeyPair = generateRSAKeyPair();
+clientPrivateKey = clientKeyPair.privateKey;
+clientPublicKey = clientKeyPair.publicKey;
+
+// Method to generate RSA key pair
+async function generateRSAKeyPair() {
+    const keyPair = await window.crypto.subtle.generateKey(
+        {
+            name: "RSA-OAEP",
+            modulusLength: 2048, // Key size
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: { name: "SHA-256" },
+        },
+        true, // Whether the key is extractable
+        ["encrypt", "decrypt"] // Key usage
+    );
+    return keyPair;
+}
+
+// Method to encrypt data using RSA public key
+async function encrypt(plainText, publicKey) {
+    const encoder = new TextEncoder();
+    const encodedText = encoder.encode(plainText);
+    
+    const encrypted = await window.crypto.subtle.encrypt(
+        {
+            name: "RSA-OAEP"
+        },
+        publicKey,
+        encodedText
+    );
+    
+    // Convert ArrayBuffer to Base64 string
+    return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+}
+
+// Method to decrypt data using RSA private key
+async function decrypt(encryptedText, privateKey) {
+    // Convert Base64 string to ArrayBuffer
+    const encryptedData = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
+    
+    const decrypted = await window.crypto.subtle.decrypt(
+        {
+            name: "RSA-OAEP"
+        },
+        privateKey,
+        encryptedData
+    );
+    
+    const decoder = new TextDecoder();
+    return decoder.decode(decrypted);
+}
+
+
+msg = {
+    "header" : "create-account",
+    "username" : "redstoner20192",
+    "displayname" : "Redstoner_2019",
+    "email" : "lukaspaepke2020@gmail.com",
+    "password" : "test"
+}
+
+msglogin = {
+    "header" : "login-2fa",
+    "username" : "lukas",
+    "password" : "test",
+    "2fa-id" : "5ecfa271-b114-45af-8704-9b7fb05b1bc1",
+    "2fa-code" : "305-554"
+}
+
+window.localStorage.setItem("token","xkldjfhlkjucxhglkjxfjhg");
+window.localStorage.setItem("dennis","kitten");
+
+socket.onopen = () => {
+    console.log('Connected to the WebSocket server');
+    //console.log(clientPublicKey.modulus);
+};
+
+socket.onmessage = (event) => {
+    if(!isSetup){
+        console.log(event.data);
+        serverPublicKey = event.data;
+        return;
+    }
+    console.log('Message from server: ', event.data);
+    json = JSON.parse(event.data);
+    if(json.value === 'OK'){
+        if(json.result.data === '2fa-required'){
+            loginForm.classList.add('hidden');
+            twoFaForm.classList.remove('hidden');
+            msg['2fa-id'] = json.result['2fa-id'];
+            msg.header = 'create-account-2fa';
+            console.log(msg);
+        } else if(json.result.data === 'incorrect-password') {
+            messageDiv.textContent = 'Invalid username or password';
+        } else {
+            messageDiv.textContent = 'Login successful!';
+        }
+        if(json.result.data === 'login-success'){
+            messageDiv.textContent = 'Login successful!';
+            twoFaForm.classList.add('hidden');
+        }
+    } else if(json.value === '2fa-incorrect'){
+        messageDiv.textContent = 'Invalid 2FA code';
+    }
+};
+
+socket.onclose = (event) => {
+    console.log('Disconnected from the WebSocket server');
+};
+
+socket.onerror = (error) => {
+    console.error('WebSocket error: ', error);
+};
+
+
+const loginForm = document.getElementById('loginForm');
+const twoFaForm = document.getElementById('2faForm');
+const messageDiv = document.getElementById('message');
+
+// Event listener for login form submission
+loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    //msg.username = username;
+    //msg.password = password;
+
+    //sendMessage(JSON.stringify(msg));
+});
+
+// Event listener for 2FA form submission
+twoFaForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const twoFaCode = document.getElementById('2faCode').value;
+
+    msg['2fa-code'] = document.getElementById('2faCode').value;
+
+    //sendMessage(JSON.stringify(msg));
+});
+*/
+  

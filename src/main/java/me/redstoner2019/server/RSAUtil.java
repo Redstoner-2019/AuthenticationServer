@@ -18,6 +18,22 @@ public class RSAUtil {
     private static final String AES = "AES";
     public static HashMap<String,String> sessionKeys = new HashMap<>();
 
+    public static void sendInit(WebSocket ws){
+        int bitLength = 1024;
+
+        BigInteger[] serverKeyPair = generateRSAKeyPair(bitLength);
+        BigInteger server_n = serverKeyPair[0];
+        BigInteger server_e = serverKeyPair[1];
+        BigInteger server_d = serverKeyPair[2];
+
+        JSONObject data = new JSONObject();
+        data.put("header","server-info");
+        data.put("n", server_n.toString());
+        data.put("e", server_e.toString());
+
+        ws.send(data.toString());
+    }
+
     public static JSONObject handleMessage(JSONObject request, WebSocket ws){
         if(request.has("header")){
             if(request.getString("header").equals("connection")){
