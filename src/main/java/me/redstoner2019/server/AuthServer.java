@@ -104,6 +104,22 @@ public class AuthServer {
         saveConfig();
     }
 
+    public static JSONObject displaynameByUUid(String uuid){
+        reloadConfig();
+        if(data.getJSONObject("uuids").has(uuid)){
+            JSONObject result = new JSONObject();
+            result.put("header","find-displayname");
+            result.put("data","found");
+            result.put("displayname",data.getJSONObject(data.getJSONObject("uuids").getString(uuid)).getString("displayname"));
+            return result;
+        } else {
+            JSONObject result = new JSONObject();
+            result.put("header","find-displayname");
+            result.put("data","account-doesnt-exist");
+            return result;
+        }
+    }
+
     public static JSONObject tokenInfo(String token){
         JSONObject result = new JSONObject();
         result.put("header","token-info-result");
@@ -215,6 +231,10 @@ public class AuthServer {
             data.put("emails",new JSONObject());
         }
 
+        if(!data.has("uuids")){
+            data.put("uuids",new JSONObject());
+        }
+
         if(data.getJSONObject("emails").has(email.toLowerCase())){
             JSONObject result = new JSONObject();
             result.put("header","create-account-result");
@@ -294,6 +314,10 @@ public class AuthServer {
         user.put("email",email);
         user.put("2fa",false);
         data.put(username,user);
+
+        /*JSONObject uuids = data.getJSONObject("uuids");
+        uuids.put(username,user.getString("uuid"));
+        data.put("uuids",uuids);*/
 
         JSONObject emails = data.getJSONObject("emails");
         emails.put(email.toLowerCase(),username);

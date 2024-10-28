@@ -47,6 +47,14 @@ public class WebServer extends WebSocketServer {
                     }
                     if(request.has("header")){
                         switch (request.getString("header")){
+                            case "get-displayname" : {
+                                response = new JSONObject();
+                                response.put("header","response");
+                                response.put("code",200);
+                                response.put("value","OK");
+                                response.put("result",AuthServer.displaynameByUUid(request.getString("uuid")));
+                                break;
+                            }
                             case "delete-account" : {
                                 if(!request.has("username") || !request.has("password") ||!request.has("token")){
                                     String error = "Missing fields";

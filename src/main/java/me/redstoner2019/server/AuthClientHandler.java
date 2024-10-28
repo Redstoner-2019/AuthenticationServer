@@ -64,16 +64,21 @@ public class AuthClientHandler {
                             sendJSON(AuthServer.tokenInfo(token));
                             break;
                         }
+                        default: {
+                            sendJSON(new JSONObject("{\"header\":\"Invalid Request\""));
+                        }
                     }
                 }
             } catch (Exception e) {
                 System.out.println("Client disconnected");
+                e.printStackTrace();
                 return;
             }
         }
     }
     private void sendJSON(JSONObject o){
         try {
+            System.out.println("Sending JSON: " + o.toString());
             oos.writeObject(o.toString());
             oos.flush();
         } catch (IOException e) {

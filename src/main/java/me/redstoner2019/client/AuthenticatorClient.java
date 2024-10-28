@@ -62,7 +62,7 @@ public class AuthenticatorClient {
         }
     }
 
-    public JSONObject createAccount(String username, String displayname, String password){
+    public JSONObject createAccount(String username, String displayname, String password, String email){
         if(!isConnected()){
             return null;
         }
@@ -72,6 +72,7 @@ public class AuthenticatorClient {
             o.put("username",username);
             o.put("displayname",displayname);
             o.put("password",password);
+            o.put("email",password);
             oos.writeObject(o.toString());
             return new JSONObject((String) ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
@@ -132,7 +133,7 @@ public class AuthenticatorClient {
     public static void main(String[] args) throws IOException, InterruptedException {
         AuthenticatorClient client = new AuthenticatorClient();
         client.setup();
-        JSONObject accountResult = client.createAccount("lukas","Lukas","test");
+        JSONObject accountResult = client.createAccount("lukas","Lukas","test","");
         JSONObject loginResult = client.loginAccount("lukas","test");
         JSONObject tokenInfo = client.tokeninfo(loginResult.getString("token"));
 

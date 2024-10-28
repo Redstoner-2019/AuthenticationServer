@@ -2,7 +2,8 @@
   "emails" : {
     "kiddex@gmx.de" : "myuu",
     "lukaspaepke2020@gmail.com" : "lukas",
-    "halilsjobemail@gmail.com" : "halil"
+    "halilsjobemail@gmail.com" : "halil",
+    "redstoner.2020@gmail.com" : "redstoner2019"
   },
   "halil" : {
     "password" : "test",
@@ -12,9 +13,18 @@
     "2fa" : false,
     "email" : "halilsjobemail@gmail.com"
   },
+  "redstoner2019" : {
+    "password" : "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "displayname" : "Redstoner_2019",
+    "creation-time" : 1727862459646,
+    "uuid" : "3ffaa048-bb80-475c-8d5e-67ebe14e435f",
+    "2fa" : false,
+    "email" : "redstoner.2020@gmail.com"
+  },
   "tokens" : {
     "q9u5NDlgZ5qsBRNe97NuvDgGlQYCKkCQK6JMV/J9OedHLQ7m0wxaW12Reva2/dK3pLT4wa0miN0H8hgi3wYmOHX7Czokmc5K6996YLwaqN3cQFUDmRMw5bFi4owb1kTYg0v+xFJ38uSseSGVrWPDtL/TkI0v2wR1Cse1o65JWjw=" : "NicoCRUW",
     "ye8zqoxlNdsgKsOobF2c6KuQeGN48vIL0/fKWJBKlT938KBzt271DSO3qs5dsVqafnGaRHA4CMCXzZbuMycphV9z2T+gq+zVM7tIR0bTUi46jELLb9a9SFmo2/nl2jiXB9d99a426SDKQ0B8V1cnij+15vpPoiG+ESgIQ3MMDig=" : "myuu",
+    "9cES+sBYZ3T8IVz6zWEg7jfMZMNgnMLC3+8pFixwPal+gtP0JFWj2kRBy/G7YNgMtrcU5s78NyL3QgvWqj/1ggMBd3zeGFZ9BVnxZAGBxFVaoTVsPE4/Jj+v5Yho2YzRjEChkmyD+EAxga53X8UZycax1jsM430sqxp+qFjRdMs=" : "redstoner2019",
     "UevcC5OHvLE9KueNivtcU/oqSQ9uDvt6w3dHQMAutRBodF+rvAHg3glWx2oZ63jAehY1UBNqt7SLIpZ3gKszq8E0UQeb6Wl1qAhrcMghkGbV7AxzuwC7rsejq1ENhbZgwtrY5fkNnOBzBzahY8zmFQe3BdXkF2W0c9S6uFT7lJY=" : "halil",
     "TJFwAvSDPF8X7jy9RY92r3PfXa7Wjf2zGc5BrozYDOJGP6KGUodOZY4Yxr8MVfOzUDbMfeSpkFEq2sA/1KF5Doj7XJ2zkPV+cZK4QjX4+tWNMJWhlnDpr3dHM++s9ANJFmdFPVP/miDTFweB/FkE6sobS3yaQZPxDD2S9z5DERM=" : "",
     "n4vXMSe53ho9yIYL4F2wd4AxjGRF3B1Aq89+gJlm6d4tGRK0/bn8Tef1watF0nHv/l1vWOfIe2gFv33lmC53pjmqHQXFF4j8A1WVH2RiQkOck6vP5UKiEndnxdYsehJSmyVjeUJfi99rsgpnqOkE7rRc8m+CBdEUFLUGAPoQCSo=" : "lukas"
@@ -32,6 +42,12 @@
     "displayname" : "NicoCRUW",
     "creation-time" : 1721989758613,
     "uuid" : "d5196b4b-8a3c-469c-b296-0d9a1c0f81bf"
+  },
+  "uuids" : {
+    "0a5765b8-84d6-467a-81f1-08587d2b67eb" : "myuu",
+    "d5196b4b-8a3c-469c-b296-0d9a1c0f81bf" : "NicoCRUW",
+    "f9a7051c-2cc3-400a-995e-62d8f6fad990" : "halil",
+    "1ca7934e-3c2f-4390-8306-b853c42a1fa1" : "lukas"
   },
   "myuu" : {
     "password" : "uwu123",
